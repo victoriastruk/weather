@@ -1,28 +1,38 @@
 "use strict";
 
-const weatherUrl =
-  "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true&timezone=auto";
+let isCelsiiDegree = true;
+const tempUnitBtn = document.getElementById("tempUnitBtn");
 
-fetch(weatherUrl)
-  .then((response) => response.json())
-  .then((data) => generateWeather(data))
-  .catch((err) => console.log("error: ", err));
+tempUnitBtn.onclick = switchTemperatureUnit;
 
-//відобразити на сторінці поточну температуру з одиницею виміру
-//відобразити темп.від'ємну синів кольором, 0 чорним
-// додатню до 40 - зеленим, >=40 - червоним
-// відобразити швидкість вітру з одиницею виміру
+function switchTemperatureUnit() {
+  isCelsiiDegree = !isCelsiiDegree;
+  updateData();
+}
+updateData();
+
+function updateData() {
+  tempUnitBtn.textContent = `Switch to ${isCelsiiDegree ? "F" : "C"}`;
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true&timezone=auto${
+    isCelsiiDegree ? "" : "&temperature_unit=fahrenheit"
+  }`;
+
+  fetch(weatherUrl)
+    .then((response) => response.json())
+    .then((data) => generateWeather(data))
+    .catch((err) => console.log("error: ", err));
+}
+
 function generateWeather({
   current_weather: { temperature, windspeed },
   current_weather_units: { temperature: tempUnit, windspeed: windUnit },
 }) {
-  const currentTemperatureEl = document.createElement("div");
+  const currentTemperatureEl = document.querySelector(".temp");
   currentTemperatureEl.textContent = `${temperature} ${tempUnit}`;
   currentTemperatureEl.style.color = calcTemperatureColor(temperature);
 
-  const currentWindSpeed = document.createElement("div");
+  const currentWindSpeed = document.querySelector(".wind");
   currentWindSpeed.textContent = `${windspeed} ${windUnit}`;
-  document.body.append(currentTemperatureEl, currentWindSpeed);
 }
 
 function calcTemperatureColor(temperature) {
